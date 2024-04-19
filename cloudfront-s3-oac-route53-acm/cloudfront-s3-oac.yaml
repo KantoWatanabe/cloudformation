@@ -77,7 +77,7 @@ Resources:
         - Name: !Ref DomainName
           Type: A
           AliasTarget:
-            HostedZoneId: Z2FDTNDATAQYW2
+            HostedZoneId: Z2FDTNDATAQYW2 # 固定値 https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/quickref-route53.html
             DNSName: !GetAtt CloudFrontDistribution.DomainName
 
   #-----------------------------------------------------------------------------

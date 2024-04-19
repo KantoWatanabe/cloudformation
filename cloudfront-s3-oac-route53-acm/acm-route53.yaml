@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  Create a Route53 hoseted zone and Certificate for hosting a static website
+
+Parameters:
+  DomainName:
+    Description: Domain Name
+    Type: String
+  Env:
+    Description: Environment
+    Type: String
+    Default: Prod
+
+Resources:
+
+  #-----------------------------------------------------------------------------
+  # Route53
+  #-----------------------------------------------------------------------------
+  Route53HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: !Ref DomainName
+
+  #-----------------------------------------------------------------------------
+  # ACM
+  #-----------------------------------------------------------------------------
+  CertificateManagerCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !GetAtt Route53HostedZone.Id
+      ValidationMethod: DNS
+    DependsOn: Route53HostedZone
+
+Outputs:
+  route53HostedZoneId:
+    Value: !GetAtt Route53HostedZone.Id
+    Export:
+      Name: !Sub route53-hosted-zone-id
+  AcmCertificateArn:
+    Value: !Ref CertificateManagerCertificate
+    Export:
+      Name: !Sub acm-certicate-arn

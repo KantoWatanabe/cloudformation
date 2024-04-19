@@ -2,15 +2,12 @@
 
 source ./config.sh
 
-Route53HostedZoneId=
-AcmCertificateArn=
+Region=us-east-1
 
 aws cloudformation deploy \
 --region "${Region}" \
 --stack-name "${StackName}" \
---template-file ../cloudfront-s3-oac.yaml \
+--template-file ../acm-route53.yaml \
 --parameter-overrides \
-Route53HostedZoneId="${Route53HostedZoneId}" \
-AcmCertificateArn="${AcmCertificateArn}" \
 DomainName="${DomainName}" \
 Env="${Env}"
