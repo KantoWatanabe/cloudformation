@@ -3,11 +3,11 @@ Description: |
   Create an S3 bucket and CloudFront (OAC) for hosting a static website
 
 Parameters:
-  OrganizationName:
-    Description: Organization Name
+  Route53HostedZoneId:
+    Description: Route53 Hosted Zone ID
     Type: String
-  SystemName:
-    Description: System Name
+  AcmCertificateArn:
+    Description: Acm Certificate Arn
     Type: String
   DomainName:
     Description: Domain Name
@@ -31,10 +31,10 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${OrganizationName}-${SystemName}-bucket
+      BucketName: !Ref DomainName
       Tags:
         - Key: Name
-          Value: !Sub ${OrganizationName}-${SystemName}-bucket
+          Value: !Ref DomainName
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -65,10 +65,6 @@ Resources:
   #-----------------------------------------------------------------------------
   # Route53
   #-----------------------------------------------------------------------------
-  Route53HostedZone:
-    Type: AWS::Route53::HostedZone
-    Properties:
-      Name: !Ref DomainName
   Route53RecordSetGroup:
     Type: 'AWS::Route53::RecordSetGroup'
     Properties:
@@ -79,18 +75,6 @@ Resources:
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2 # 固定値 https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/quickref-route53.html
             DNSName: !GetAtt CloudFrontDistribution.DomainName
-
-  #-----------------------------------------------------------------------------
-  # ACM
-  #-----------------------------------------------------------------------------
-  CertificateManagerCertificate:
-    Type: AWS::CertificateManager::Certificate
-    Properties:
-      DomainName: !Ref DomainName
-      DomainValidationOptions:
-        - DomainName: !Ref DomainName
-          HostedZoneId: !GetAtt Route53HostedZone.Id
-      ValidationMethod: DNS
   
   #-----------------------------------------------------------------------------
   # CloudFront
@@ -99,7 +83,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub ${SystemName}-distribution
+        Comment: !Sub ${DomainName}-distribution
         Origins:
           - DomainName: !GetAtt S3Bucket.RegionalDomainName
             Id: !GetAtt S3Bucket.RegionalDomainName
@@ -127,13 +111,13 @@ Resources:
         Aliases:
           - !Ref DomainName
         ViewerCertificate:
-          AcmCertificateArn: !Ref CertificateManagerCertificate
+          AcmCertificateArn: !Ref AcmCertificateArn
   OAC:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
         Description: Access Control
-        Name: !Sub ${SystemName}-oac
+        Name: !Sub ${DomainName}-oac
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -143,4 +127,4 @@ Outputs:
   CloudFrontDomainName:
     Value: !GetAtt CloudFrontDistribution.DomainName
     Export:
-      Name: !Sub ${SystemName}-domain-name
+      Name: domain-name

@@ -32,7 +32,6 @@ Resources:
         - DomainName: !Ref DomainName
           HostedZoneId: !GetAtt Route53HostedZone.Id
       ValidationMethod: DNS
-    DependsOn: Route53HostedZone
 
 Outputs:
   route53HostedZoneId:
